@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.RoleMapper">
+  <resultMap id="BaseResultMap" type="com.domain.Role">
+    <!--@mbg.generated-->
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="rolename" jdbcType="VARCHAR" property="rolename" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    id, rolename, description
+  </sql>
+  <resultMap id="selectAllPermisAndByRoleidRermisresultMap" type="map">
+    <id column="aid" property="aid"/>
+    <result column="apermistitle" property="apermistitle"/>
+    <collection property="twolist" javaType="list" ofType="map">
+      <id column="bid" property="bid"/>
+      <result column="bpermistitle" property="bpermistitle"/>
+      <collection property="threelist" javaType="list" ofType="map">
+        <id column="cid" property="cid"/>
+        <result column="cpermistitle" property="cpermistitle"/>
+      </collection>
+    </collection>
+  </resultMap>
+
+  <select id="selectAllPermisAndByRoleidRermis" resultMap="selectAllPermisAndByRoleidRermisresultMap">
+    select *
+    from (
+           select a.id aid,a.permistitle apermistitle from permis a where a.parent = 0 and a.permistype = 1) aa
+           left join
+           (select id bid,permistitle bpermistitle,parent bparent from permis where permistype = 1) bb
+           on bb.bparent = aa.aid
+           left join
+           (select id cid,permistitle cpermistitle,parent cparent from permis where permistype = 1) cc
+           on cc.cparent = bb.bid
+  </select>
+</mapper>

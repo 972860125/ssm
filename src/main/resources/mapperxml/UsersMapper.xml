@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.UsersMapper">
+    <resultMap id="BaseResultMap" type="com.domain.Users">
+        <!--@mbg.generated-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="username" jdbcType="VARCHAR" property="username"/>
+        <result column="userpwd" jdbcType="VARCHAR" property="userpwd"/>
+        <result column="sectionid" jdbcType="INTEGER" property="sectionid"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, username, userpwd, sectionid
+    </sql>
+    <select id="selectRoleByUserId" parameterType="com.domain.Users" resultType="java.lang.String">
+        select b.rolename from role_users a inner join role b on (INSTR(a.ids,concat('[',#{id},']') )>0
+        <foreach collection="sectionList" item="v">
+            or INSTR(a.ids,concat('{',#{v.id},'}'))>0 or INSTR(a.ids,concat('[!',#{v.company.id},'!]'))>0
+        </foreach>
+        ) and a.roleid=b.id
+    </select>
+
+    <select id="selectPermisByUsersId" resultType="com.domain.Permis">
+        select DISTINCT(d.id),d.permistitle,d.href,d.parent,d.permisname,d.permistype,d.description from role_users a
+        inner join
+        role b on (INSTR(a.ids,concat('[',#{users.id},']') )>0
+        <foreach collection="users.sectionList" item="v">
+            or INSTR(a.ids,concat('{',#{v.id},'}'))>0 or INSTR(a.ids,concat('[!',#{v.company.id},'!]'))>0
+        </foreach>
+        ) and a.roleid=b.id inner join role_permis c on b.id=c.roleid inner join permis d on c.permisid=d.id
+        <if test="permistype!=null">
+            and d.permistype=#{permistype}
+        </if>
+    </select>
+    <!-- 根据用户id获取用户对象，里面包含用户对应的部门id、公司id-->
+    <select id="selectByIds" resultMap="selectByIdsResultMap" parameterType="com.domain.Users">
+        select a.id usersid,b.id sectionid,c.id companyid
+        from users a
+                 inner join section b on a.id = #{id} and a.sectionid = b.id
+                 inner join company c on b.companyid = c.id
+    </select>
+    <resultMap id="selectByIdsResultMap" type="com.domain.Users">
+        <id column="usersid" property="id"></id>
+        <collection property="sectionList" javaType="list" ofType="com.domain.Section">
+            <id column="sectionid" property="id"></id>
+            <association property="company" javaType="com.domain.Company">
+                <id column="companyid" property="id" jdbcType="INTEGER"></id>
+            </association>
+        </collection>
+    </resultMap>
+</mapper>
